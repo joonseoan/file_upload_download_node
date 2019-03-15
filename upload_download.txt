@@ -1,0 +1,14 @@
+1) npm i --save multer
+2) In the view, at the "form"
+    enter enctype="multipart/form-data"
+
+          <form class="product-form" action="/admin/<% if(editing) { %>edit-product<% } else { %>add-product<% } %>" method="POST" enctype="multipart/form-data">
+            <div class="form-control">
+                <label for="title">Title</label>
+                <input
+                    class="<%= validationError.find(error => error.param === 'title') ? 'invalid' : '' %>"
+                    type="text" 
+                    name="title" 
+                    id="title"
+                    value="<% if(editing || hasError)  { %><%= product.title %><% } %>">
+            </div>
