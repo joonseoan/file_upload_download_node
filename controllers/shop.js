@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const Product = require('../models/product');
 const Order = require('../models/order');
 
@@ -212,4 +215,69 @@ exports.getOrders = (req, res, next) => {
       return next(errors);    
   });
     // .catch(err => console.log(err));
+};
+
+exports.getInvoice = (req, res, next) => {
+  const { orderId } = req.params;
+
+  Order.findById(orderId)
+    .then(order => {
+
+      if(!order) {
+        return next(new Error('Order is not available.'));
+      }
+
+      // Because to prevent another user to access the invoice download by using url
+      // like "localhost:3000/orders/5c91940681a90e1c28e78e55"
+      if(order.user.userId.toString() !== req.user._id.toString()) {
+        return next(new Error('User is not aurthorized to download the invoice.'));
+      }
+
+      const invoiceName = 'invoice-' + orderId + '.pdf';
+      // file path setup and file name setup
+      const invoicePath = path.join('data', 'invoices', invoiceName);
+      
+      
+      // 2) for bigger file, it is better for the performance.
+      const file = fs.createReadStream(invoicePath); // readable
+      res.setHeader('Content-Type', 'application/pdf');  
+      res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+      
+      // res: buffers from readable streams
+      // pipe: it is only used to collect readable streams 
+      //  and then to make them writable buffers in the browser.
+      file.pipe(res);
+      
+      // 1) for small file and tiny request, this file download is ok.
+      // fs.readFile(invoicePath, (err, data) => {
+
+      //   if(err) {
+      //     // same thing in catch statement
+      //     return next(err);
+      //   }
+
+      //   // send a file type. So the user does not need to choose application?
+      //   res.setHeader('Content-Type', 'application/pdf');
+
+      //   // while downloading, it has the proper filename and proper extension.
+      //   // res.setHeader('Content-Disposition', 'attachment; filename="' + invoiceName + '"');
+        
+      //   res.setHeader('Content-Disposition', 'inline; filename="' + invoiceName + '"');
+      //   // it is sending a file which is downloading!!!
+      //   res.send(data);
+
+      //   // remember that we use JSON.parse(file) to read a file.
+
+      // });
+
+    })
+    .catch(err => {
+      let message;
+      const errors = new Error(message || err);
+      errors.httpStatusCode = 500;
+      return next(errors);  
+    })
+
+  
+
 };

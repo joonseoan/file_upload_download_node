@@ -9,18 +9,15 @@
                 <h1>Nothing there!</h1>
             <% } else { %>
                 <ul>
-
-                    <% console.log('orders in ejs: ========', orders); %>
                     <% orders.forEach(order => { %>
                         <li>
                             <h1># <%= order._id %></h1>
                             <ul>
                                 <% order.products.forEach(item => { %>
-                                    <% console.log('item in ejs: ========', item); %>
-
                                     <li>
                                         TITLE: <%= item.product.title %>, 
                                         QTY : <%= item.qty %> 
+                                        - <a href="/orders/<%= order._id %>">Invoice</a>
                                     </li>
                                 <% }) %>
                             </ul>

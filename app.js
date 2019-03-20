@@ -80,7 +80,7 @@ const fileStorage = multer.diskStorage({
 });
 
 // Then, to allow the specific file, we can use 'filefilter'
-const filefilter = (req, file, cb) => {
+const fileFilter = (req, file, cb) => {
   // extension name must be lower letter!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   if(file.mimetype === 'image/png' || file.mimetype === 'image/jpg' || file.mimetype === 'image/jpeg') {
     
@@ -103,7 +103,7 @@ const authRoutes = require('./routes/auth');
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // 2) image: input name in 'view'
-app.use(multer({ storage: fileStorage, fileFilter: filefilter }).single('image'))
+app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('image'))
 
 // image: must be real input name in "view"
 // multer optons:
@@ -113,8 +113,21 @@ app.use(multer({ storage: fileStorage, fileFilter: filefilter }).single('image')
 //    except for the extension(.png) that we need to manually put.
 // app.use(multer({ dest: 'images'}).single('image'))
 
-// For access to public folder
+// For access to public folder from express server
+// In other words, 
+//  the files in the designated folder,
+//  will be automatically connected or will be returned
+//  to express server 
 app.use(express.static(path.join(__dirname, 'public')));
+
+// finding images folder directly under the root direction.
+// app.use(express.static(path.join(__dirname, 'images')));
+
+// finding image files in the image folder under the root directories
+//  because imageUrl is "product.imageUrl:  images\2019-03-19T23-49-49.544Z-lady.PNG"
+//  which is including 'images\"
+//  which indicates images\images\ folder if it is "app.use(express.static(path.join(__dirname, 'images')));"
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // resave:false : as long as session data is not switched,
 //  it is not going to save the same cookie again.

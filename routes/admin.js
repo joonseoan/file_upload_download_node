@@ -76,6 +76,7 @@ router.post('/edit-product', [
     .isLength({ min: 3 })
     .trim(),
 
+  // since we used file upload sysem
   // body('imageUrl')
   //   .isURL(),
 

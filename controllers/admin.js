@@ -28,7 +28,7 @@ exports.postAddProduct = (req, res, next) => {
   // const imageUrl = req.body.image;
 
   // Since using "multer", we uses "req.file"
-  const imageUrl = req.file;
+  const image = req.file;
 
   /* 
     { fieldname: 'image',
@@ -41,26 +41,36 @@ exports.postAddProduct = (req, res, next) => {
       size: 153118 }
   
   */
-  console.log(imageUrl)
+
+  // when jpg, png, and jpeg is not availble in the file attached
+  //  this is "undefined"
+  // console.log('image: ', image);
+
   // const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
 
-  // if (!image) {
-  //   return res.status(422).render('admin/edit-product', {
-  //     pageTitle: 'Add Product',
-  //     path: '/admin/add-product',
-  //     editing: false,
-  //     hasError: true,
-  //     product: {
-  //       title: title,
-  //       price: price,
-  //       description: description
-  //     },
-  //     errorMessage: 'Attached file is not an image.',
-  //     validationErrors: []
-  //   });
-  // }
+  // when image is not a file like jpg, jpeg, and png
+  if(!image) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/add-product',
+      hasError: true,
+      editing: false,
+      // imagePath / imageUrl does not work any more for the file system is used.
+      // product: { title, image, price, description },
+      product: { title, price, description },
+      errorMessage: 'Attached file is not an image',
+      validationError: []
+    });
+  }
+
+  // image.path is from "req.file"
+  // "req.file" has a path field
+  // It indicates that path where the image stores in this root directory.
+  // console.log('image.path: ', image.path)
+  // const imageUrl = image.path
+  const imagePath = image.path;
 
   const errors = validationResult(req);
 
@@ -71,7 +81,9 @@ exports.postAddProduct = (req, res, next) => {
       path: '/admin/add-product',
       hasError: true,
       editing: false,
-      product: { title, imageUrl, price, description } ,
+      // imagePath is not working any more for file system is used
+      // product: { title, price, imagePath, description },
+      product: { title, price, description },
       errorMessage: errors.array()[0].msg,
       validationError: errors.array()
     });
@@ -82,8 +94,9 @@ exports.postAddProduct = (req, res, next) => {
     title: title,
     price: price,
     description: description,
-    imageUrl: imageUrl,
-
+    // instead of image itself, it stores path(directory) in the root
+    // imageUrl: imageUrl
+    imageUrl: imagePath,
     // ref is assined in schema
     // Better to use req.user
     userId: req.user
@@ -102,18 +115,18 @@ exports.postAddProduct = (req, res, next) => {
       
       // adding the error code
       errors.httpStatusCode = 500;
-      
+
       // call app.use((error, req, res, next) => {
         // res.redirect('/get500');
       // })
       // errors === error above not identified. It is ok.
-      return next(errors);
+      next(errors);
 
       // It is working by the way here.
       // if do add some error message, for the developer
       // we can make use of it.
       // It is sent to the console.
-     //  throw new Error ('Unable to store the product.');
+      throw new Error ('Unable to store the product.');
       
       // [ Option 3 ]
       // directly get the route of the error message page 
@@ -159,12 +172,16 @@ exports.getEditProduct = (req, res, next) => {
         return res.redirect('/');
       }
 
+      const { title, price, description, _id } = product;
+
       res.render('admin/edit-product', {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         hasError: false,
         editing: editMode,
-        product: product,
+        // because product.imageUrl is not required any more for the file system is used.
+        // product,
+        product: { title, price, description, _id },
         errorMessage: null,
         validationError: []
        // isAuthenticated: req.session.isAuthenticated
@@ -185,7 +202,9 @@ exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
+  // by using file upload
+  const image = req.file;
+  // const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
 
   const errors = validationResult(req);
@@ -198,8 +217,9 @@ exports.postEditProduct = (req, res, next) => {
       hasError: true,
       editing: true,
       product: { 
-        title: updatedTitle, 
-        imageUrl: updatedImageUrl, 
+        title: updatedTitle,
+        // imageUrl doe not work any more for the file system is used.
+        // imageUrl: updatedImageUrl, 
         price: updatedPrice, 
         description: updatedDesc,
 
@@ -249,7 +269,10 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
-      product.imageUrl = updatedImageUrl;
+      if(image) {
+        product.imageUrl = image.path;
+      }
+      
       return product.save()
       .then(result => {
         res.redirect('/admin/products');

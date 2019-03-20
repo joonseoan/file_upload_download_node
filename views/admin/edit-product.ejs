@@ -22,7 +22,8 @@
                     type="text" 
                     name="title" 
                     id="title"
-                    value="<% if(editing || hasError)  { %><%= product.title %><% } %>">
+                    value="<% if(editing || hasError)  { %><%= product.title %><% } %>"
+                >
             </div>
            <!--  <div class="form-control">
                 <label for="imageUrl">Image URL</label>
@@ -38,12 +39,18 @@
             name=image
             id=image
   -->
+            <!-- 
+                value is not available here.
+                Therefore, it is ok that we would not send res.status(422).render('', {
+                    image: 'null'
+                })
+            -->
             <div class="form-control">
                 <label for="image">Image</label>
                 <input 
                     type="file" 
                     name="image" 
-                    id="image" 
+                    id="image"
                 >
             </div>
             <div class="form-control">

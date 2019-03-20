@@ -23,4 +23,7 @@ router.post('/create-order', isAuth, shopController.postOrder);
 
 router.get('/orders', isAuth, shopController.getOrders);
 
+// download setup by using "wild card"
+router.get('/orders/:orderId', isAuth, shopController.getInvoice);
+
 module.exports = router;
